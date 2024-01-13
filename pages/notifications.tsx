@@ -1,35 +1,42 @@
 import Header from "@/components/Header";
 import NotificationsFeed from "@/components/NotificationsFeed";
-import useCurrentUser from "@/hooks/useCurrentUser";
-import { NextPageContext } from "next";
-import { getSession } from "next-auth/react";
+import { authOptions } from "./api/auth/[...nextauth]";
+import { getServerSession } from "next-auth";
+import { NextPageContext, NextApiRequest, NextApiResponse } from "next";
 
 export async function getServerSideProps(context: NextPageContext) {
-  const session = await getSession(context);
+  let req: NextApiRequest = context.req as NextApiRequest;
+  let res: NextApiResponse = context.res as NextApiResponse;
+
+  if (!req) {
+    throw new Error("Request object is undefined.");
+  }
+
+  const session = await getServerSession(req, res, authOptions);
 
   if (!session) {
     return {
       redirect: {
-        destination: '/',
+        destination: "/",
         permanent: false,
-      }
-    }
+      },
+    };
   }
 
   return {
     props: {
-      session
-    }
-  }
+      session,
+    },
+  };
 }
 
 const Notifications = () => {
-  return ( 
+  return (
     <>
       <Header showBackArrow label="Notifications" />
       <NotificationsFeed />
     </>
-   );
-}
- 
+  );
+};
+
 export default Notifications;
